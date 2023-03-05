@@ -14,18 +14,20 @@ services:
     redis:
         image: 'redis:alpine'
 
-    mysql:
-        image: 'mysql:8.0'
+    postgres:
+        image: 'postgres:11.1-alpine'
         working_dir: /application
         volumes:
             - '.:/application'
         environment:
-            - MYSQL_ROOT_PASSWORD=root
-            - MYSQL_DATABASE=patient_system
-            - MYSQL_USER=otaodev
-            - MYSQL_PASSWORD=Secret@123
+            - POSTGRES_USER=otaodev
+            - POSTGRES_PASSWORD=Secret@123
+            - POSTGRES_DB=patient_system
         ports:
-            - '8002:3306'
+            - '8004:5432'
+
+    elasticsearch:
+        image: 'elasticsearch:6.5.4'
 
     clickhouse:
         image: 'clickhouse/clickhouse-server:latest'
