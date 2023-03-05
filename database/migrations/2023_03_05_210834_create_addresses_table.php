@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('addresses', function (Blueprint $table) {
             $table->uuid('uuid')->primary();
             $table->string("cep");
-            $table->string("logradouro");
-            $table->string("complemento");
-            $table->string("bairro");
-            $table->string("localidade");
-            $table->string("uf", 2);
+            $table->string("street");
+            $table->integer("number");
+            $table->string("complement");
+            $table->string("neighbor");
+            $table->string("city");
+            $table->string("stateCode", 2);
             $table->string("ibge");
             $table->string("gia");
             $table->string("ddd");
