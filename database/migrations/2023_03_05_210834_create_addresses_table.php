@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string("complemento");
             $table->string("bairro");
             $table->string("localidade");
-            $table->string("uf");
+            $table->string("uf", 2);
             $table->string("ibge");
             $table->string("gia");
             $table->string("ddd");

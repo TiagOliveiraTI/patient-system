@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('patients', function (Blueprint $table) {
             $table->uuid('uuid')->primary();
-            $table->string("cpf")->unique();
+            $table->string("cpf", 11)->unique();
             $table->string("photo");
             $table->string("name");
             $table->string("mom_name");
