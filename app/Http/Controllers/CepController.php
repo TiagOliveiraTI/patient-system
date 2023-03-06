@@ -3,13 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Address;
-use Dflydev\DotAccessData\Exception\DataException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
-use function PHPUnit\Framework\isEmpty;
+use Illuminate\Support\Facades\Cache;
 
 class CepController extends Controller
 {
@@ -18,7 +15,13 @@ class CepController extends Controller
      */
     public function index()
     {
-        return Address::paginate(10);
+        $addresses = [];
+
+        $addresses = Cache::remember('address', 15, function () {
+            return Address::paginate(10);
+        });
+
+        return $addresses;
     }
 
     /**
