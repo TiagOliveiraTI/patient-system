@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Address;
 use Dflydev\DotAccessData\Exception\DataException;
-use Error;
-use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -33,7 +31,6 @@ class CepController extends Controller
         $viaCepResponse = $this->validateIfZipCodeExists($body);
 
         if (array_key_exists('erro', $viaCepResponse)) {
-
             return response()->json([
                 "data" => sprintf("O cep %s não existe!", $request['cep'])
             ])->setStatusCode(404);
@@ -75,7 +72,7 @@ class CepController extends Controller
         $body = json_decode($request->getContent(), true);
 
         $viaCepResponse = $this->validateIfZipCodeExists($body);
-        
+
         $address = Address::find($addressId);
 
         $address['zip_code'] = $viaCepResponse['cep'];

@@ -17,9 +17,6 @@ grumphp:
       testsuite: ~
       group: []
       always_execute: true
-
-    phpstan:
-      configuration: "phpstan.neon"
       
     git_commit_message:
           allow_empty_message: false
