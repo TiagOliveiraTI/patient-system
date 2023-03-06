@@ -12,17 +12,6 @@ grumphp:
         ./resources/*
       ]
 
-    phpmd:
-        whitelist_patterns: []
-        exclude: 
-          - app/Providers/
-          - config/
-          - database/
-          - vendor/
-        report_format: text
-        ruleset: ['cleancode', 'codesize', 'naming']
-        triggered_by: ['php']
-
     phpunit:
       config_file: ~
       testsuite: ~

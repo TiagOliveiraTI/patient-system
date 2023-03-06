@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('addresses', function (Blueprint $table) {
-            $table->uuid('uuid')->primary();
-            $table->string("cep");
+            $table->uuid('id')->primary();
+            $table->string("zip_code");
             $table->string("street");
             $table->integer("number");
             $table->string("complement");
