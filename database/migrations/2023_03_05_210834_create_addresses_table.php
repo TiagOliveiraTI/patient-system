@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string("zip_code");
             $table->string("street");
             $table->integer("number");
-            $table->string("complement");
-            $table->string("neighbor");
+            $table->string("complement")->nullable(true);
+            $table->string("neighborhood");
             $table->string("city");
             $table->string("stateCode", 2);
             $table->string("ibge");

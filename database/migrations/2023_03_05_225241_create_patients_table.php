@@ -16,14 +16,14 @@ return new class extends Migration
             $table->string("cpf", 11)->unique();
             $table->string("photo");
             $table->string("name");
-            $table->string("mom_name");
+            $table->string("mother_name");
             $table->dateTimeTz("birth_date");
             $table->string("cns");
 
             $table->foreignUuid('address_id')
-            ->references('id')
-            ->on('addresses')
-            ->onDelete('cascade');
+                ->references('id')
+                ->on('addresses')
+                ->onDelete('cascade');
 
             $table->timestamps();
         });

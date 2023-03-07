@@ -44,7 +44,7 @@ class CepController extends Controller
         $address['street'] = !empty($body['rua']) ? $body['rua'] : $viaCepResponse['logradouro'];
         $address['number'] = $body['numero'];
         $address['complement'] = $viaCepResponse['complemento'];
-        $address['neighbor'] = !empty($body['bairro']) ? $body['bairro'] : $viaCepResponse['bairro'];
+        $address['neighborhood'] = !empty($body['bairro']) ? $body['bairro'] : $viaCepResponse['bairro'];
         $address['city'] = $viaCepResponse['localidade'];
         $address['stateCode'] = $viaCepResponse['uf'];
         $address['ibge'] = $viaCepResponse['ibge'];

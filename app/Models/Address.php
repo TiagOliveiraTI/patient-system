@@ -20,7 +20,7 @@ class Address extends Model
         "street",
         "number",
         "complement",
-        "neighbor",
+        "neighborhood",
         "city",
         "stateCode",
         "ibge",
