@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 class PatientController extends Controller
 {
@@ -17,10 +18,8 @@ class PatientController extends Controller
      */
     public function index()
     {
-        $patients = [];
-
         $patients = Cache::remember('patients', 15, function () {
-            return Patient::paginate(10);
+            return Patient::with('address')->paginate(10);
         });
 
         return $patients;
@@ -31,47 +30,39 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
-        $addressData = $request->input('endereco');
-
-        $viaCepResponse = $this->validateIfZipCodeExists($addressData);
-
-
-        if (array_key_exists('erro', $viaCepResponse)) {
-            return response()->json([
-                "data" => sprintf("O cep %s não existe!", $request['cep'])
-            ])->setStatusCode(404);
-        }
 
         $address = [];
-
-        $address['zip_code'] = $viaCepResponse['cep'];
-        $address['street'] = !empty($addressData['rua']) ? $addressData['rua'] : $viaCepResponse['logradouro'];
-        $address['number'] = $addressData['numero'];
-        $address['complement'] = $viaCepResponse['complemento'];
-        $address['neighborhood'] = !empty($addressData['bairro']) ? $addressData['bairro'] : $viaCepResponse['bairro'];
-        $address['city'] = $viaCepResponse['localidade'];
-        $address['stateCode'] =  !empty($addressData['uf']) ? $addressData['uf'] : $viaCepResponse['uf'];
-        $address['ibge'] = $viaCepResponse['ibge'];
-        $address['gia'] = $viaCepResponse['gia'];
-        $address['ddd'] = $viaCepResponse['ddd'];
-        $address['siafi'] = $viaCepResponse['siafi'];
-
-        $newAddress = Address::firstOrCreate($address);
-
         $patient = new Patient();
-        $patient->cpf = $request->input('cpf');
-        $patient->photo = $request->input('foto');
-        $patient->name = $request->input('nome');
-        $patient->mother_name = $request->input('nome_mae');
-        $patient->birth_date = $request->input('data_nascimento');
-        $patient->cns = $request->input('cns');
-        $patient->address_id = $newAddress->id;
-        $patient->save();
 
-        return response()->json([
-            'message' => 'Patient created successfully',
-            'data' => $patient
-        ], 201);
+        try {
+            $validatedData = $request->validate(Patient::rules());
+
+            $addressData = $validatedData['endereco'];
+
+            $viaCepResponse = $this->validateIfZipCodeExists($addressData);
+
+            if (array_key_exists('erro', $viaCepResponse)) {
+                return response()
+                    ->json([
+                        "data" => sprintf("O cep %s não existe!", $addressData['cep'])
+                    ])->setStatusCode(404);
+            }
+
+            $address = $this->makeAddressData($viaCepResponse, $address, $addressData);
+
+            $newAddress = Address::firstOrCreate($address);
+
+            $this->makePatientData($validatedData, $patient, $newAddress);
+
+            return response()->json([
+                'message' => 'Patient created successfully',
+                'data' => $patient
+            ], 201);
+        } catch (BadRequestException $exception) {
+            return response()->json([
+                'error' => $exception->getMessage()
+            ], 400);
+        }
     }
 
     /**
@@ -79,7 +70,7 @@ class PatientController extends Controller
      */
     public function show(string $id)
     {
-        //
+        return Patient::find($id);
     }
 
     /**
@@ -87,7 +78,39 @@ class PatientController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $address = [];
+            $patient = Patient::findOrFail($id);
+
+            $validatedData = $request->validate(Patient::rules());
+
+            $addressData = $validatedData['endereco'];
+            $viaCepResponse = $this->validateIfZipCodeExists($addressData);
+
+            if (array_key_exists('erro', $viaCepResponse)) {
+                return response()
+                    ->json([
+                        "data" => sprintf("O cep %s não existe!", $addressData['cep'])
+                    ])->setStatusCode(404);
+            }
+
+            $address = $this->makeAddressData($viaCepResponse, $address, $addressData);
+
+            $newAddress = Address::firstOrCreate($address);
+
+            $this->makePatientData($validatedData, $patient, $newAddress);
+
+            return response()->json([
+                'message' => 'Patient updated successfully',
+                'data' => $patient
+            ], 200);
+
+
+        } catch (BadRequestException $exception) {
+            return response()->json([
+                'error' => $exception->getMessage()
+            ], 400);
+        }
     }
 
     /**
@@ -95,7 +118,14 @@ class PatientController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $patient = Patient::findOrFail($id);
+            return $patient->delete();
+        } catch (BadRequestException $exception) {
+            return response()->json([
+                'error' => $exception->getMessage()
+            ], 400);
+        }
     }
 
     private function validateIfZipCodeExists(array $request): array|JsonResponse
@@ -110,5 +140,45 @@ class PatientController extends Controller
         $apiUrl = sprintf('%s/%s/json', getenv('VIACEP_URL'), $cep);
 
         return Http::get($apiUrl);
+    }
+
+    /**
+     * @param JsonResponse|array $viaCepResponse
+     * @param array $address
+     * @param mixed $addressData
+     * @return array
+     */
+    private function makeAddressData(JsonResponse|array $viaCepResponse, array $address, mixed $addressData): array
+    {
+        $address['zip_code'] = $viaCepResponse['cep'];
+        $address['street'] = !empty($addressData['rua']) ? $addressData['rua'] : $viaCepResponse['logradouro'];
+        $address['number'] = $addressData['numero'];
+        $address['complement'] = $viaCepResponse['complemento'];
+        $address['neighborhood'] = !empty($addressData['bairro']) ? $addressData['bairro'] : $viaCepResponse['bairro'];
+        $address['city'] = $viaCepResponse['localidade'];
+        $address['stateCode'] = !empty($addressData['uf']) ? $addressData['uf'] : $viaCepResponse['uf'];
+        $address['ibge'] = $viaCepResponse['ibge'];
+        $address['gia'] = $viaCepResponse['gia'];
+        $address['ddd'] = $viaCepResponse['ddd'];
+        $address['siafi'] = $viaCepResponse['siafi'];
+        return $address;
+    }
+
+    /**
+     * @param array $validatedData
+     * @param Patient $patient
+     * @param $newAddress
+     * @return void
+     */
+    private function makePatientData(array $validatedData, Patient $patient, $newAddress): void
+    {
+        $patient->cpf = preg_replace('/[^0-9]/', '', $validatedData['cpf']);
+        $patient->photo = $validatedData['foto'];
+        $patient->name = $validatedData['nome'];
+        $patient->mother_name = $validatedData['nome_mae'];
+        $patient->birth_date = $validatedData['data_nascimento'];
+        $patient->cns = $validatedData['cns'];
+        $patient->address_id = $newAddress->id;
+        $patient->save();
     }
 }
