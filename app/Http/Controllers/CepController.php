@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 class CepController extends Controller
 {
@@ -102,7 +103,14 @@ class CepController extends Controller
      */
     public function destroy(string $addressId)
     {
-        //
+        try {
+            $patient = Address::findOrFail($addressId);
+            return $patient->delete();
+        } catch (BadRequestException $exception) {
+            return response()->json([
+                'error' => $exception->getMessage()
+            ], 400);
+        }
     }
 
     private function validateIfZipCodeExists(array $request): array|JsonResponse
