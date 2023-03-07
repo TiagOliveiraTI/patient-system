@@ -104,8 +104,6 @@ class PatientController extends Controller
                 'message' => 'Patient updated successfully',
                 'data' => $patient
             ], 200);
-
-
         } catch (BadRequestException $exception) {
             return response()->json([
                 'error' => $exception->getMessage()

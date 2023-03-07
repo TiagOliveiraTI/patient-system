@@ -22,7 +22,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::apiResource('ceps', CepController::class);
 
-Route::prefix('patients')->group(function() {
+Route::prefix('patients')->group(function () {
 
     Route::get('/', [PatientController::class, 'index']);
     Route::post('/', [PatientController::class, 'store']);
